@@ -12,11 +12,8 @@ const showPlayerLives = document.getElementById("player-lives");
 const showEnemyLives = document.getElementById("enemy-lives");
 
 const powerPicked = document.getElementById("player-power");
-const showYourPower = document.createElement("p");
 const enemyPowerPicked = document.getElementById("enemy-power");
-const showYourEnemyPower = document.createElement("p");
 const showScore = document.getElementById("whoWin");
-const showing = document.createElement("p");
 
 const final = document.getElementById("whoWin");
 const endBanner = document.createElement("p");
@@ -26,7 +23,7 @@ const robotsPowersContainer = document.getElementById("robots-container");
 let robots = [];
 let robotOption;
 let playerAttack = [];
-let enemyAttack;
+let enemyAttack = [];
 let dronePet;
 let slugPet;
 let observerPet;
@@ -34,11 +31,15 @@ let sentinelPet;
 let steelPet;
 let playerRobot;
 let robotsAttacks;
+let enemyPetAttack;
 let heavyBullets;
 let laserRays;
 let lightningShield;
 let bts = [];
-
+let initialPlayerAttack;
+let initialEnemyAttack;
+let playerVictories = 0;
+let enemyVictories = 0;
 let playerLives = 3;
 let enemyLives = 3;
 
@@ -182,15 +183,19 @@ function attackSequence() {
         playerAttack.push("heavyBullets");
         console.log(playerAttack);
         bt.style.background = "#112f58";
+        bt.disabled = true;
       } else if (e.target.textContent === "⚡") {
         playerAttack.push("laserRays");
         console.log(playerAttack);
         bt.style.background = "#112f58";
+        bt.disabled = true;
       } else {
         playerAttack.push("lightningShield");
         console.log(playerAttack);
         bt.style.background = "#112f58";
+        bt.disabled = true;
       }
+      randomEnemyAttack();
     });
   });
 }
@@ -201,71 +206,106 @@ function pickEnemyPet() {
   enemyPet.innerHTML = robots[randomEnemyPet].name;
   image = `<img src=${robots[randomEnemyPet].image} alt=${robots[randomEnemyPet].name}>`;
   enemyPetImage.innerHTML = image;
+  enemyPetAttack = robots[randomEnemyPet].attacks;
   attackSequence();
 }
 
 function randomEnemyAttack() {
-  let randomAttack = randomPower(1, 3);
+  let randomAttack = randomPower(0, enemyPetAttack.length - 1);
 
-  if (randomAttack == 1) {
-    enemyAttack = "heavyBullets";
+  if (randomAttack == 0) {
+    enemyAttack.push("heavyBullets");
+  } else if (randomAttack == 1) {
+    enemyAttack.push("laserRays");
   } else if (randomAttack == 2) {
-    enemyAttack = "laserRays";
-  } else if (randomAttack == 3) {
-    enemyAttack = "lightningShield";
+    enemyAttack.push("lightningShield");
   }
+  console.log(enemyAttack);
+  startFight();
+}
 
-  theWinnerIs();
+function startFight() {
+  if (playerAttack.length == 3) {
+    theWinnerIs();
+  }
+}
+
+function mixingAttacks(player, enemy) {
+  initialPlayerAttack = playerAttack[player];
+  initialEnemyAttack = enemyAttack[enemy];
 }
 
 function theWinnerIs() {
-  if (playerAttack == enemyAttack) {
-    resultado = "draw";
-  } else if (
-    (playerAttack == "heavyBullets" && enemyAttack == "lightningShield") ||
-    (playerAttack == "laserRays" && enemyAttack == "heavyBullets") ||
-    (playerAttack == "lightningShield" && enemyAttack == "laserRays")
-  ) {
-    resultado = "Your Pet wins";
-    enemyLives--;
-    showEnemyLives.innerHTML = enemyLives;
-  } else {
-    resultado = "Enemys Pet Wins";
-    playerLives--;
-    showPlayerLives.innerHTML = playerLives;
+  for (let index = 0; index < playerAttack.length; index++) {
+    if (playerAttack[index] === enemyAttack[index]) {
+      mixingAttacks(index, index);
+      resultado = "draw";
+    } else if (
+      playerAttack[index] === "heavyBullets" &&
+      enemyAttack[index] == "lightningShield"
+    ) {
+      mixingAttacks(index, index);
+      resultado = "Your Pet wins";
+      playerVictories++;
+      showPlayerLives.innerHTML = playerVictories;
+    } else if (
+      playerAttack[index] === "laserRays" &&
+      enemyAttack[index] == "heavyBullets"
+    ) {
+      mixingAttacks(index, index);
+      resultado = "Your Pet wins";
+      playerVictories++;
+      showPlayerLives.innerHTML = playerVictories;
+    } else if (
+      playerAttack[index] === "lightningShield" &&
+      enemyAttack[index] == "laserRays"
+    ) {
+      mixingAttacks(index, index);
+      resultado = "Your Pet wins";
+
+      playerVictories++;
+      showPlayerLives.innerHTML = playerVictories;
+    } else {
+      mixingAttacks(index, index);
+      resultado = "Enemys Pet Wins";
+      enemyVictories++;
+      showEnemyLives.innerHTML = enemyVictories;
+    }
+    fight();
   }
-  fight();
+
   checkLives();
 }
 
 function checkLives() {
-  if (enemyLives == 0) {
+  if (playerVictories === enemyVictories) {
+    finalresult("DRAW");
+  } else if (playerVictories > enemyVictories) {
     finalresult("VICTORY");
-  } else if (playerLives == 0) {
+  } else {
     finalresult("DEFEAT");
   }
+}
+
+function fight() {
+  let showYourPower = document.createElement("p");
+  let showYourEnemyPower = document.createElement("p");
+  let showing = document.createElement("p");
+
+  showYourPower.innerHTML = initialPlayerAttack;
+  showYourEnemyPower.innerHTML = initialEnemyAttack;
+
+  showing.innerHTML = resultado;
+  showing.setAttribute("id", "res-pet");
+
+  powerPicked.appendChild(showYourPower);
+  enemyPowerPicked.appendChild(showYourEnemyPower);
+  showScore.appendChild(showing);
 }
 
 function finalresult(victoryOrDefeat) {
   endBanner.innerHTML = victoryOrDefeat;
   final.appendChild(endBanner);
-
-  heavyBullets.disabled = true;
-  laserRays.disabled = true;
-  lightningShield.disabled = true;
-}
-
-function fight() {
-  showYourPower.innerHTML = playerAttack;
-  powerPicked.appendChild(showYourPower);
-
-  showYourEnemyPower.innerHTML = enemyAttack;
-  enemyPowerPicked.appendChild(showYourEnemyPower);
-
-  showing.setAttribute("id", "res-pet");
-
-  showing.innerHTML = resultado;
-  showScore.appendChild(showing);
 }
 
 function reloadGame() {
