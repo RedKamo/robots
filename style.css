@@ -140,7 +140,12 @@ button:focus-visible {
   padding: 2em;
 }
 
-.player-pet p {
+.player-pet-profile {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
   box-shadow: 3px 3px 0px 1px #000000;
   border: 3px solid #000000;
   border-radius: 5px;
@@ -164,4 +169,16 @@ button:focus-visible {
   padding: 0.5em 1em;
   margin: 1em 0;
   background-color: #38dbff;
+}
+
+@media only screen and (max-width: 654px) {
+  .chosen-pet {
+    flex-direction: column;
+    align-items: center;
+    margin: 0 20px;
+  }
+  .player-pet-profile {
+    width: auto;
+    height: auto;
+  }
 }

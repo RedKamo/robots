@@ -1,18 +1,12 @@
 const battle = document.getElementById("battle-powers");
 const pickButton = document.getElementById("pick-button");
-const heavyBullets = document.getElementById("heavy-bullets");
-const laserRays = document.getElementById("laser-rays");
-const lightningShield = document.getElementById("shield");
 const restartGame = document.getElementById("reload");
 
 const avilablePets = document.getElementById("available-pets");
-const dronePet = document.getElementById("drone");
-const slugPet = document.getElementById("slug");
-const observerPet = document.getElementById("observer");
-const sentinelPet = document.getElementById("sentinel");
-const steelPet = document.getElementById("steel");
 const yourPet = document.getElementById("player-Pet");
+const yourPetImage = document.getElementById("player-img");
 const enemyPet = document.getElementById("enemy-Pet");
+const enemyPetImage = document.getElementById("enemy-img");
 
 const showPlayerLives = document.getElementById("player-lives");
 const showEnemyLives = document.getElementById("enemy-lives");
@@ -26,19 +20,97 @@ const showing = document.createElement("p");
 
 const final = document.getElementById("whoWin");
 const endBanner = document.createElement("p");
+const robotsCard = document.getElementById("robot-card");
+const robotsPowersContainer = document.getElementById("robots-container");
 
-let playerAttack;
+let robots = [];
+let robotOption;
+let playerAttack = [];
 let enemyAttack;
-let resultado;
+let dronePet;
+let slugPet;
+let observerPet;
+let sentinelPet;
+let steelPet;
+let playerRobot;
+let robotsAttacks;
+let heavyBullets;
+let laserRays;
+let lightningShield;
+let bts = [];
+
 let playerLives = 3;
 let enemyLives = 3;
 
+class Robot {
+  constructor(name, image, life) {
+    this.name = name;
+    this.image = image;
+    this.life = life;
+    this.attacks = [];
+  }
+}
+
+let drone = new Robot("Drone", "assets/Drone.png", 3);
+let slug = new Robot("Slug", "assets/Metal-Slug.png", 3);
+let observer = new Robot("Observer", "assets/observer.png", 3);
+let sentinel = new Robot("Sentinel", "assets/Sentinel.png", 3);
+let steel = new Robot("Steel", "assets/steel-eagle.png", 3);
+
+drone.attacks.push(
+  { name: "🔫", id: "heavy-bullets" },
+  { name: "🔫", id: "heavy-bullets" },
+  { name: "⚡", id: "laser-rays" }
+);
+
+slug.attacks.push(
+  { name: "☔", id: "shield" },
+  { name: "☔", id: "shield" },
+  { name: "🔫", id: "heavy-bullets" }
+);
+
+observer.attacks.push(
+  { name: "⚡", id: "laser-rays" },
+  { name: "⚡", id: "laser-rays" },
+  { name: "☔", id: "shield" }
+);
+
+sentinel.attacks.push(
+  { name: "⚡", id: "laser-rays" },
+  { name: "🔫", id: "heavy-bullets" },
+  { name: "☔", id: "shield" }
+);
+
+steel.attacks.push(
+  { name: "⚡", id: "laser-rays" },
+  { name: "⚡", id: "laser-rays" },
+  { name: "⚡", id: "laser-rays" }
+);
+
+robots.push(drone, slug, observer, sentinel, steel);
+
 function startGame() {
   battle.style.display = "none";
+
+  robots.forEach((robot) => {
+    robotOption = `
+    <label htmlFor=${robot.name} class="pets-card">
+      <input type="radio" name="pet" id=${robot.name} alt="" />
+      <img src=${robot.image} alt=${robot.name} />
+      <p>${robot.name}</p>
+    </label>
+  `;
+    robotsCard.innerHTML += robotOption;
+
+    dronePet = document.getElementById("Drone");
+    slugPet = document.getElementById("Slug");
+    observerPet = document.getElementById("Observer");
+    sentinelPet = document.getElementById("Sentinel");
+    steelPet = document.getElementById("Steel");
+  });
+
   pickButton.addEventListener("click", pickPet);
-  heavyBullets.addEventListener("click", bulletsAttack);
-  laserRays.addEventListener("click", laserAttack);
-  lightningShield.addEventListener("click", shieldAttack);
+
   restartGame.addEventListener("click", reloadGame);
 }
 
@@ -47,51 +119,89 @@ function pickPet() {
   battle.style.display = "block";
 
   if (dronePet.checked) {
-    yourPet.innerHTML = "Drone";
+    yourPet.innerHTML = dronePet.id;
+    playerRobot = dronePet.id;
+    image = `<img src=${drone.image} alt=${drone.nombre}>`;
+    yourPetImage.innerHTML = image;
   } else if (slugPet.checked) {
-    yourPet.innerHTML = "Slug";
+    yourPet.innerHTML = slugPet.id;
+    playerRobot = slugPet.id;
+    image = `<img src=${slug.image} alt=${slug.nombre}>`;
+    yourPetImage.innerHTML = image;
   } else if (observerPet.checked) {
-    yourPet.innerHTML = "Observer";
+    yourPet.innerHTML = observerPet.id;
+    playerRobot = observerPet.id;
+    image = `<img src=${observer.image} alt=${observer.nombre}>`;
+    yourPetImage.innerHTML = image;
   } else if (sentinelPet.checked) {
-    yourPet.innerHTML = "Sentinel";
+    yourPet.innerHTML = sentinelPet.id;
+    playerRobot = sentinelPet.id;
+    image = `<img src=${sentinel.image} alt=${sentinel.nombre}>`;
+    yourPetImage.innerHTML = image;
   } else if (steelPet.checked) {
-    yourPet.innerHTML = "Steel";
+    yourPet.innerHTML = steelPet.id;
+    playerRobot = steelPet.id;
+    image = `<img src=${steel.image} alt=${steel.nombre}>`;
+    yourPetImage.innerHTML = image;
   } else {
     alert("You must select a Pet ");
   }
-
+  extractAttacks(playerRobot);
   pickEnemyPet();
 }
 
-function pickEnemyPet() {
-  let random = randomPower(1, 5);
+function extractAttacks(playerRobot) {
+  let attacks;
 
-  if (random == 1) {
-    enemyPet.innerHTML = "Drone";
-  } else if (random == 2) {
-    enemyPet.innerHTML = "Slug";
-  } else if (random == 3) {
-    enemyPet.innerHTML = "Observer";
-  } else if (random == 4) {
-    enemyPet.innerHTML = "Sentinel";
-  } else if (random == 5) {
-    enemyPet.innerHTML = "Steel";
+  for (let i = 0; i < robots.length; i++) {
+    if (playerRobot === robots[i].name) {
+      attacks = robots[i].attacks;
+    }
   }
+  showAttacks(attacks);
 }
 
-function bulletsAttack() {
-  playerAttack = "heavyBullets";
-  randomEnemyAttack();
+function showAttacks(attacks) {
+  attacks.forEach((attack) => {
+    robotsAttacks = `
+  <button id=${attack.id} class="BAttack">${attack.name}</button>
+  `;
+    robotsPowersContainer.innerHTML += robotsAttacks;
+  });
+
+  heavyBullets = document.getElementById("heavy-bullets");
+  laserRays = document.getElementById("laser-rays");
+  lightningShield = document.getElementById("shield");
+  bts = document.querySelectorAll(".BAttack");
 }
 
-function laserAttack() {
-  playerAttack = "laserRays";
-  randomEnemyAttack();
+function attackSequence() {
+  bts.forEach((bt) => {
+    bt.addEventListener("click", (e) => {
+      if (e.target.textContent === "🔫") {
+        playerAttack.push("heavyBullets");
+        console.log(playerAttack);
+        bt.style.background = "#112f58";
+      } else if (e.target.textContent === "⚡") {
+        playerAttack.push("laserRays");
+        console.log(playerAttack);
+        bt.style.background = "#112f58";
+      } else {
+        playerAttack.push("lightningShield");
+        console.log(playerAttack);
+        bt.style.background = "#112f58";
+      }
+    });
+  });
 }
 
-function shieldAttack() {
-  playerAttack = "lightningShield";
-  randomEnemyAttack();
+function pickEnemyPet() {
+  let randomEnemyPet = randomPower(0, robots.length - 1);
+
+  enemyPet.innerHTML = robots[randomEnemyPet].name;
+  image = `<img src=${robots[randomEnemyPet].image} alt=${robots[randomEnemyPet].name}>`;
+  enemyPetImage.innerHTML = image;
+  attackSequence();
 }
 
 function randomEnemyAttack() {
@@ -144,20 +254,6 @@ function finalresult(victoryOrDefeat) {
   laserRays.disabled = true;
   lightningShield.disabled = true;
 }
-
-/* function colorResult() {
-  if (resultado == "draw") {
-    resultado = document.getElementById("res-pet").style.backgroundColor =
-      "#ffb443";
-  } else if (resultado == "Your Pet wins") {
-    resultado = document.getElementById("res-pet").style.backgroundColor =
-      "##00ff75";
-  } else {
-    resultado = document.getElementById("res-pet").style.backgroundColor =
-      "#ff5d5d";
-  }
-}
- */
 
 function fight() {
   showYourPower.innerHTML = playerAttack;

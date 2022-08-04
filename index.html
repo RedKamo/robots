@@ -14,33 +14,7 @@
           <section class="pets-title">
             <h2 class="subtitle">Available pets</h2>
           </section>
-          <section class="pets-bank">
-            <label htmlFor="drone" class="pets-card">
-              <input type="radio" name="pet" id="drone" alt="" />
-              <img src="/assets/Drone.png" alt="" />
-              <p>Drone</p>
-            </label>
-            <label htmlFor="slug" class="pets-card">
-              <input type="radio" name="pet" id="slug" alt="" />
-              <img src="/assets/Metal-Slug.png" alt="" />
-              <p>Slug</p>
-            </label>
-            <label htmlFor="observer" class="pets-card">
-              <input type="radio" name="pet" id="observer" alt="" />
-              <img src="/assets/observer.png" alt="" />
-              <p>Observer</p>
-            </label>
-            <label htmlFor="sentinel" class="pets-card">
-              <input type="radio" name="pet" id="sentinel" alt="" />
-              <img src="/assets/Sentinel.png" alt="" />
-              <p>Sentinel</p>
-            </label>
-            <label htmlFor="steel" class="pets-card">
-              <input type="radio" name="pet" id="steel" alt="" />
-              <img src="/assets/steel-eagle.png" alt="" />
-              <p>Steel</p>
-            </label>
-          </section>
+          <section class="pets-bank" id="robot-card"></section>
           <section>
             <button id="pick-button">Pick 🎯</button>
           </section>
@@ -51,12 +25,18 @@
             <section class="player-pet">
               <h3>Your Pet:</h3>
               <span id="player-lives">3</span>
-              <p id="player-Pet"></p>
+              <section class="player-pet-profile">
+                <p id="player-Pet"></p>
+                <p id="player-img"></p>
+              </section>
             </section>
             <section class="player-pet">
               <h3>Enemy Pet:</h3>
               <span id="enemy-lives">3</span>
-              <p id="enemy-Pet"></p>
+              <section class="player-pet-profile">
+                <p id="enemy-Pet"></p>
+                <p id="enemy-img" />
+              </section>
             </section>
           </section>
           <section class="fight-result">
@@ -64,11 +44,7 @@
             <section class="res" id="whoWin"></section>
             <section class="player-pet" id="enemy-power"></section>
           </section>
-          <section class="powers">
-            <button id="heavy-bullets">🔫</button>
-            <button id="laser-rays">⚡</button>
-            <button id="shield">☔</button>
-          </section>
+          <section class="powers" id="robots-container"></section>
           <section>
             <button id="reload">Restart</button>
           </section>
