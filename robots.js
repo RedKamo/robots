@@ -287,7 +287,7 @@ function checkLives() {
   }
 }
 
-function fight(resultado) {
+function fight() {
   let showYourPower = document.createElement("p");
   let showYourEnemyPower = document.createElement("p");
   let showing = document.createElement("p");
