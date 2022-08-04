@@ -180,7 +180,7 @@ function attackSequence() {
   bts.forEach((bt) => {
     bt.addEventListener("click", (e) => {
       if (e.target.textContent === "🔫") {
-        playerAttack.push("heavyBullets");
+        playerAttack.push("heavyBulslets");
         console.log(playerAttack);
         bt.style.background = "#112f58";
         bt.disabled = true;
@@ -287,7 +287,7 @@ function checkLives() {
   }
 }
 
-function fight() {
+function fight(resultado) {
   let showYourPower = document.createElement("p");
   let showYourEnemyPower = document.createElement("p");
   let showing = document.createElement("p");
