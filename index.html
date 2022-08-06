@@ -19,6 +19,16 @@
             <button id="pick-button">Pick 🎯</button>
           </section>
         </section>
+        <section class="map-container" id="see-map">
+          <h2>Visit the city</h2>
+          <canvas class="map-canva" id="map"></canvas>
+          <section class="move-keys">
+            <button onmouseup="stopMove()" onmousedown="moveUp()">👆🏽</button>
+            <button onmouseup="stopMove()" onmousedown="moveDown()">👇🏽</button>
+            <button onmouseup="stopMove()" onmousedown="moveLeft()">👈🏽</button>
+            <button onmouseup="stopMove()" onmousedown="moveRight()">👉🏽</button>
+          </section>
+        </section>
         <section class="container-powers" id="battle-powers">
           <h2>choose your attack</h2>
           <section class="chosen-pet">

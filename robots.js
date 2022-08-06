@@ -20,6 +20,9 @@ const endBanner = document.createElement("p");
 const robotsCard = document.getElementById("robot-card");
 const robotsPowersContainer = document.getElementById("robots-container");
 
+const sectionMap = document.getElementById("see-map");
+const mapa = document.getElementById("map");
+
 let robots = [];
 let robotOption;
 let playerAttack = [];
@@ -42,6 +45,10 @@ let playerVictories = 0;
 let enemyVictories = 0;
 let playerLives = 3;
 let enemyLives = 3;
+let lienzo = mapa.getContext("2d");
+let intervalo;
+let backgroundMap = new Image();
+backgroundMap.src = "assets/bg1.jpg";
 
 class Robot {
   constructor(name, image, life) {
@@ -49,6 +56,14 @@ class Robot {
     this.image = image;
     this.life = life;
     this.attacks = [];
+    this.x = 20;
+    this.y = 30;
+    this.ancho = 80;
+    this.alto = 80;
+    this.mapImage = new Image();
+    this.mapImage.src = image;
+    this.speedX = 0;
+    this.speedY = 0;
   }
 }
 
@@ -92,6 +107,7 @@ robots.push(drone, slug, observer, sentinel, steel);
 
 function startGame() {
   battle.style.display = "none";
+  sectionMap.style.display = "none";
 
   robots.forEach((robot) => {
     robotOption = `
@@ -117,7 +133,9 @@ function startGame() {
 
 function pickPet() {
   avilablePets.style.display = "none";
-  battle.style.display = "block";
+  //battle.style.display = "block";
+  sectionMap.style.display = "flex";
+  startMap();
 
   if (dronePet.checked) {
     yourPet.innerHTML = dronePet.id;
@@ -273,7 +291,6 @@ function theWinnerIs() {
     }
     fight();
   }
-
   checkLives();
 }
 
@@ -314,6 +331,61 @@ function reloadGame() {
 
 function randomPower(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function drawCanvas() {
+  sentinel.x = sentinel.x + sentinel.speedX;
+  sentinel.y = sentinel.y + sentinel.speedY;
+  lienzo.clearRect(0, 0, mapa.width, mapa.height);
+  lienzo.drawImage(backgroundMap, 0, 0, mapa.width, mapa.height);
+  lienzo.drawImage(
+    sentinel.mapImage,
+    sentinel.x,
+    sentinel.y,
+    sentinel.ancho,
+    sentinel.alto
+  );
+}
+
+function moveRight() {
+  sentinel.speedX = 5;
+}
+
+function moveLeft() {
+  sentinel.speedX = -5;
+}
+
+function moveDown() {
+  sentinel.speedY = 5;
+}
+
+function moveUp() {
+  sentinel.speedY = -5;
+}
+
+function stopMove() {
+  sentinel.speedX = 0;
+  sentinel.speedY = 0;
+}
+
+//Using Object literals instead of switch statement
+function pressKey(e) {
+  const testKeys = {
+    ArrowUp: () => moveUp(),
+    ArrowDown: () => moveDown(),
+    ArrowLeft: () => moveLeft(),
+    ArrowRight: () => moveRight(),
+  };
+
+  testKeys[e.key]();
+}
+
+function startMap() {
+  mapa.width = 950;
+  mapa.height = 450;
+  intervalo = setInterval(drawCanvas, 50);
+  window.addEventListener("keydown", pressKey);
+  window.addEventListener("keyup", stopMove);
 }
 
 window.addEventListener("load", startGame);
