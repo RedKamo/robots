@@ -178,7 +178,11 @@ button:focus-visible {
 }
 
 .map-canva {
-  border: 2px solid white;
+  margin: 1em;
+  border: 1px solid red;
+  width: 500px;
+  height: 500px;
+  background-size: cover;
 }
 
 @media only screen and (max-width: 654px) {

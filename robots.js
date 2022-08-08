@@ -33,6 +33,7 @@ let observerPet;
 let sentinelPet;
 let steelPet;
 let playerRobot;
+let playerRobotObject;
 let robotsAttacks;
 let enemyPetAttack;
 let heavyBullets;
@@ -49,31 +50,98 @@ let lienzo = mapa.getContext("2d");
 let intervalo;
 let backgroundMap = new Image();
 backgroundMap.src = "assets/bg1.jpg";
+let desiredHeight;
+let desiredWidth = window.innerWidth - 20;
+const maxMapHeight = 450;
+
+if (desiredWidth > maxMapHeight) {
+  desiredWidth = maxMapHeight - 20;
+}
+
+desiredHeight = (desiredWidth * 600) / 800;
+
+mapa.width = desiredWidth;
+mapa.height = desiredHeight;
 
 class Robot {
-  constructor(name, image, life) {
+  constructor(name, image, life, photoMap) {
     this.name = name;
     this.image = image;
     this.life = life;
     this.attacks = [];
-    this.x = 20;
-    this.y = 30;
     this.ancho = 80;
     this.alto = 80;
+    this.x = randomPower(0, mapa.width - this.ancho);
+    this.y = randomPower(0, mapa.height - this.alto);
     this.mapImage = new Image();
-    this.mapImage.src = image;
+    this.mapImage.src = photoMap;
     this.speedX = 0;
     this.speedY = 0;
   }
+
+  drawRobot() {
+    lienzo.drawImage(this.mapImage, this.x, this.y, this.ancho, this.alto);
+  }
 }
 
-let drone = new Robot("Drone", "assets/Drone.png", 3);
-let slug = new Robot("Slug", "assets/Metal-Slug.png", 3);
-let observer = new Robot("Observer", "assets/observer.png", 3);
-let sentinel = new Robot("Sentinel", "assets/Sentinel.png", 3);
-let steel = new Robot("Steel", "assets/steel-eagle.png", 3);
+let drone = new Robot("Drone", "assets/Drone.png", 3, "assets/Drone.png");
+let slug = new Robot(
+  "Slug",
+  "assets/Metal-Slug.png",
+  3,
+  "assets/Metal-Slug.png"
+);
+let observer = new Robot(
+  "Observer",
+  "assets/observer.png",
+  3,
+  "assets/observer.png"
+);
+let sentinel = new Robot(
+  "Sentinel",
+  "assets/Sentinel.png",
+  3,
+  "assets/Sentinel.png"
+);
+let steel = new Robot(
+  "Steel",
+  "assets/steel-eagle.png",
+  3,
+  "assets/steel-eagle.png"
+);
+
+let enemyDrone = new Robot("Drone", "assets/Drone.png", 3, "assets/Drone.png");
+let enemySlug = new Robot(
+  "Slug",
+  "assets/Metal-Slug.png",
+  3,
+  "assets/Metal-Slug.png"
+);
+let enemyObserver = new Robot(
+  "Observer",
+  "assets/observer.png",
+  3,
+  "assets/observer.png"
+);
+let enemySentinel = new Robot(
+  "Sentinel",
+  "assets/Sentinel.png",
+  3,
+  "assets/Sentinel.png"
+);
+let enemySteel = new Robot(
+  "Steel",
+  "assets/steel-eagle.png",
+  3,
+  "assets/steel-eagle.png"
+);
 
 drone.attacks.push(
+  { name: "🔫", id: "heavy-bullets" },
+  { name: "🔫", id: "heavy-bullets" },
+  { name: "⚡", id: "laser-rays" }
+);
+enemyDrone.attacks.push(
   { name: "🔫", id: "heavy-bullets" },
   { name: "🔫", id: "heavy-bullets" },
   { name: "⚡", id: "laser-rays" }
@@ -84,8 +152,18 @@ slug.attacks.push(
   { name: "☔", id: "shield" },
   { name: "🔫", id: "heavy-bullets" }
 );
+enemySlug.attacks.push(
+  { name: "☔", id: "shield" },
+  { name: "☔", id: "shield" },
+  { name: "🔫", id: "heavy-bullets" }
+);
 
 observer.attacks.push(
+  { name: "⚡", id: "laser-rays" },
+  { name: "⚡", id: "laser-rays" },
+  { name: "☔", id: "shield" }
+);
+enemyObserver.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" },
   { name: "☔", id: "shield" }
@@ -96,8 +174,18 @@ sentinel.attacks.push(
   { name: "🔫", id: "heavy-bullets" },
   { name: "☔", id: "shield" }
 );
+enemySentinel.attacks.push(
+  { name: "⚡", id: "laser-rays" },
+  { name: "🔫", id: "heavy-bullets" },
+  { name: "☔", id: "shield" }
+);
 
 steel.attacks.push(
+  { name: "⚡", id: "laser-rays" },
+  { name: "⚡", id: "laser-rays" },
+  { name: "⚡", id: "laser-rays" }
+);
+enemySteel.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" }
@@ -133,9 +221,6 @@ function startGame() {
 
 function pickPet() {
   avilablePets.style.display = "none";
-  //battle.style.display = "block";
-  sectionMap.style.display = "flex";
-  startMap();
 
   if (dronePet.checked) {
     yourPet.innerHTML = dronePet.id;
@@ -166,7 +251,8 @@ function pickPet() {
     alert("You must select a Pet ");
   }
   extractAttacks(playerRobot);
-  pickEnemyPet();
+  sectionMap.style.display = "flex";
+  startMap();
 }
 
 function extractAttacks(playerRobot) {
@@ -218,13 +304,11 @@ function attackSequence() {
   });
 }
 
-function pickEnemyPet() {
-  let randomEnemyPet = randomPower(0, robots.length - 1);
-
-  enemyPet.innerHTML = robots[randomEnemyPet].name;
-  image = `<img src=${robots[randomEnemyPet].image} alt=${robots[randomEnemyPet].name}>`;
+function pickEnemyPet(enemy) {
+  enemyPet.innerHTML = enemy.name;
+  image = `<img src=${enemy.image} alt=${enemy.name}>`;
   enemyPetImage.innerHTML = image;
-  enemyPetAttack = robots[randomEnemyPet].attacks;
+  enemyPetAttack = enemy.attacks;
   attackSequence();
 }
 
@@ -334,38 +418,45 @@ function randomPower(min, max) {
 }
 
 function drawCanvas() {
-  sentinel.x = sentinel.x + sentinel.speedX;
-  sentinel.y = sentinel.y + sentinel.speedY;
+  playerRobotObject.x = playerRobotObject.x + playerRobotObject.speedX;
+  playerRobotObject.y = playerRobotObject.y + playerRobotObject.speedY;
   lienzo.clearRect(0, 0, mapa.width, mapa.height);
   lienzo.drawImage(backgroundMap, 0, 0, mapa.width, mapa.height);
-  lienzo.drawImage(
-    sentinel.mapImage,
-    sentinel.x,
-    sentinel.y,
-    sentinel.ancho,
-    sentinel.alto
-  );
+  playerRobotObject.drawRobot();
+  enemyDrone.drawRobot();
+  enemySlug.drawRobot();
+  enemyObserver.drawRobot();
+  enemySentinel.drawRobot();
+  enemySteel.drawRobot();
+
+  if (playerRobotObject !== 0 || playerRobotObject.speedY !== 0) {
+    checkImpack(enemyDrone);
+    checkImpack(enemySlug);
+    checkImpack(enemyObserver);
+    checkImpack(enemySentinel);
+    checkImpack(enemySteel);
+  }
 }
 
 function moveRight() {
-  sentinel.speedX = 5;
+  playerRobotObject.speedX = 5;
 }
 
 function moveLeft() {
-  sentinel.speedX = -5;
+  playerRobotObject.speedX = -5;
 }
 
 function moveDown() {
-  sentinel.speedY = 5;
+  playerRobotObject.speedY = 5;
 }
 
 function moveUp() {
-  sentinel.speedY = -5;
+  playerRobotObject.speedY = -5;
 }
 
 function stopMove() {
-  sentinel.speedX = 0;
-  sentinel.speedY = 0;
+  playerRobotObject.speedX = 0;
+  playerRobotObject.speedY = 0;
 }
 
 //Using Object literals instead of switch statement
@@ -381,11 +472,45 @@ function pressKey(e) {
 }
 
 function startMap() {
-  mapa.width = 950;
-  mapa.height = 450;
+  playerRobotObject = obtainPlayerRobot(playerRobot);
   intervalo = setInterval(drawCanvas, 50);
   window.addEventListener("keydown", pressKey);
   window.addEventListener("keyup", stopMove);
 }
+
+function obtainPlayerRobot() {
+  for (let i = 0; i < robots.length; i++) {
+    if (playerRobot === robots[i].name) {
+      return robots[i];
+    }
+  }
+}
+
+const checkImpack = (enemy) => {
+  const enemyUp = enemy.y;
+  const enemyDown = enemy.y + enemy.alto;
+  const enemyRight = enemy.x + enemy.ancho;
+  const enemyLeft = enemy.x;
+
+  const petUp = playerRobotObject.y;
+  const petDown = playerRobotObject.y + playerRobotObject.alto;
+  const petRight = playerRobotObject.x + playerRobotObject.ancho;
+  const petLeft = playerRobotObject.x;
+
+  if (
+    petDown < enemyUp ||
+    petUp > enemyDown ||
+    petRight < enemyLeft ||
+    petLeft > enemyRight
+  ) {
+    return;
+  }
+  stopMove();
+  clearInterval(intervalo);
+  battle.style.display = "flex";
+  sectionMap.style.display = "none";
+  pickEnemyPet(enemy);
+  // alert("Inminent Impact" + enemy.name);
+};
 
 window.addEventListener("load", startGame);
