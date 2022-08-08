@@ -217,6 +217,19 @@ function startGame() {
   pickButton.addEventListener("click", pickPet);
 
   restartGame.addEventListener("click", reloadGame);
+
+  joinGame();
+}
+
+function joinGame() {
+  fetch("http://localhost:8080/join").then(function (res) {
+    console.log(res);
+    if (res.ok) {
+      res.text().then(function (response) {
+        console.log(response);
+      });
+    }
+  });
 }
 
 function pickPet() {
