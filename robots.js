@@ -23,6 +23,7 @@ const robotsPowersContainer = document.getElementById("robots-container");
 const sectionMap = document.getElementById("see-map");
 const mapa = document.getElementById("map");
 
+let playerId = null;
 let robots = [];
 let robotOption;
 let playerAttack = [];
@@ -141,55 +142,55 @@ drone.attacks.push(
   { name: "🔫", id: "heavy-bullets" },
   { name: "⚡", id: "laser-rays" }
 );
-enemyDrone.attacks.push(
+/* enemyDrone.attacks.push(
   { name: "🔫", id: "heavy-bullets" },
   { name: "🔫", id: "heavy-bullets" },
   { name: "⚡", id: "laser-rays" }
-);
+); */
 
 slug.attacks.push(
   { name: "☔", id: "shield" },
   { name: "☔", id: "shield" },
   { name: "🔫", id: "heavy-bullets" }
 );
-enemySlug.attacks.push(
+/* enemySlug.attacks.push(
   { name: "☔", id: "shield" },
   { name: "☔", id: "shield" },
   { name: "🔫", id: "heavy-bullets" }
-);
+); */
 
 observer.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" },
   { name: "☔", id: "shield" }
 );
-enemyObserver.attacks.push(
+/* enemyObserver.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" },
   { name: "☔", id: "shield" }
-);
+); */
 
 sentinel.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "🔫", id: "heavy-bullets" },
   { name: "☔", id: "shield" }
 );
-enemySentinel.attacks.push(
+/* enemySentinel.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "🔫", id: "heavy-bullets" },
   { name: "☔", id: "shield" }
-);
+); */
 
 steel.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" }
 );
-enemySteel.attacks.push(
+/* enemySteel.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" }
-);
+); */
 
 robots.push(drone, slug, observer, sentinel, steel);
 
@@ -227,6 +228,7 @@ function joinGame() {
     if (res.ok) {
       res.text().then(function (response) {
         console.log(response);
+        playerId = response;
       });
     }
   });
@@ -263,9 +265,24 @@ function pickPet() {
   } else {
     alert("You must select a Pet ");
   }
+
+  selectRobot(playerRobot);
+
   extractAttacks(playerRobot);
   sectionMap.style.display = "flex";
   startMap();
+}
+
+function selectRobot(playerRobot) {
+  fetch(`http://localhost:8080/robot/${playerId}`, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      robot: playerRobot,
+    }),
+  });
 }
 
 function extractAttacks(playerRobot) {
@@ -436,6 +453,9 @@ function drawCanvas() {
   lienzo.clearRect(0, 0, mapa.width, mapa.height);
   lienzo.drawImage(backgroundMap, 0, 0, mapa.width, mapa.height);
   playerRobotObject.drawRobot();
+
+  sendPosition(playerRobotObject.x, playerRobotObject.y);
+
   enemyDrone.drawRobot();
   enemySlug.drawRobot();
   enemyObserver.drawRobot();
@@ -449,6 +469,25 @@ function drawCanvas() {
     checkImpack(enemySentinel);
     checkImpack(enemySteel);
   }
+}
+
+function sendPosition(x, y) {
+  fetch(`http://localhost:8080/robot/${playerId}/position`, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      x,
+      y,
+    }),
+  }).then(function (res) {
+    if (res.ok) {
+      res.json().then(function ({ enemies }) {
+        console.log(enemies);
+      });
+    }
+  });
 }
 
 function moveRight() {
