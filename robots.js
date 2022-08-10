@@ -24,7 +24,9 @@ const sectionMap = document.getElementById("see-map");
 const mapa = document.getElementById("map");
 
 let playerId = null;
+let enemyId = null;
 let robots = [];
+let enemyRobots = [];
 let robotOption;
 let playerAttack = [];
 let enemyAttack = [];
@@ -65,7 +67,8 @@ mapa.width = desiredWidth;
 mapa.height = desiredHeight;
 
 class Robot {
-  constructor(name, image, life, photoMap) {
+  constructor(name, image, life, photoMap, id = null) {
+    this.id = id;
     this.name = name;
     this.image = image;
     this.life = life;
@@ -86,24 +89,60 @@ class Robot {
 }
 
 let drone = new Robot("Drone", "assets/Drone.png", 3, "assets/Drone.png");
+
+const DRONE_ATTACKS = [
+  { name: "🔫", id: "heavy-bullets" },
+  { name: "🔫", id: "heavy-bullets" },
+  { name: "⚡", id: "laser-rays" },
+];
+
+drone.attacks.push(...DRONE_ATTACKS);
+
 let slug = new Robot(
   "Slug",
   "assets/Metal-Slug.png",
   3,
   "assets/Metal-Slug.png"
 );
+
+const SLUG_ATTACKS = [
+  { name: "☔", id: "shield" },
+  { name: "☔", id: "shield" },
+  { name: "🔫", id: "heavy-bullets" },
+];
+
+slug.attacks.push(...SLUG_ATTACKS);
+
 let observer = new Robot(
   "Observer",
   "assets/observer.png",
   3,
   "assets/observer.png"
 );
+
+const OBSERVER_ATTACKS = [
+  { name: "⚡", id: "laser-rays" },
+  { name: "⚡", id: "laser-rays" },
+  { name: "☔", id: "shield" },
+];
+
+observer.attacks.push(...OBSERVER_ATTACKS);
+
 let sentinel = new Robot(
   "Sentinel",
   "assets/Sentinel.png",
   3,
   "assets/Sentinel.png"
 );
+
+const SENTINEL_ATTACKS = [
+  { name: "⚡", id: "laser-rays" },
+  { name: "🔫", id: "heavy-bullets" },
+  { name: "☔", id: "shield" },
+];
+
+sentinel.attacks.push(...SENTINEL_ATTACKS);
+
 let steel = new Robot(
   "Steel",
   "assets/steel-eagle.png",
@@ -111,81 +150,38 @@ let steel = new Robot(
   "assets/steel-eagle.png"
 );
 
-let enemyDrone = new Robot("Drone", "assets/Drone.png", 3, "assets/Drone.png");
-let enemySlug = new Robot(
-  "Slug",
-  "assets/Metal-Slug.png",
-  3,
-  "assets/Metal-Slug.png"
-);
-let enemyObserver = new Robot(
-  "Observer",
-  "assets/observer.png",
-  3,
-  "assets/observer.png"
-);
-let enemySentinel = new Robot(
-  "Sentinel",
-  "assets/Sentinel.png",
-  3,
-  "assets/Sentinel.png"
-);
-let enemySteel = new Robot(
-  "Steel",
-  "assets/steel-eagle.png",
-  3,
-  "assets/steel-eagle.png"
-);
+const STEEL_ATTACKS = [
+  { name: "⚡", id: "laser-rays" },
+  { name: "⚡", id: "laser-rays" },
+  { name: "⚡", id: "laser-rays" },
+];
 
-drone.attacks.push(
-  { name: "🔫", id: "heavy-bullets" },
-  { name: "🔫", id: "heavy-bullets" },
-  { name: "⚡", id: "laser-rays" }
-);
+steel.attacks.push(...STEEL_ATTACKS);
+
 /* enemyDrone.attacks.push(
   { name: "🔫", id: "heavy-bullets" },
   { name: "🔫", id: "heavy-bullets" },
   { name: "⚡", id: "laser-rays" }
 ); */
 
-slug.attacks.push(
-  { name: "☔", id: "shield" },
-  { name: "☔", id: "shield" },
-  { name: "🔫", id: "heavy-bullets" }
-);
 /* enemySlug.attacks.push(
   { name: "☔", id: "shield" },
   { name: "☔", id: "shield" },
   { name: "🔫", id: "heavy-bullets" }
 ); */
 
-observer.attacks.push(
-  { name: "⚡", id: "laser-rays" },
-  { name: "⚡", id: "laser-rays" },
-  { name: "☔", id: "shield" }
-);
 /* enemyObserver.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" },
   { name: "☔", id: "shield" }
 ); */
 
-sentinel.attacks.push(
-  { name: "⚡", id: "laser-rays" },
-  { name: "🔫", id: "heavy-bullets" },
-  { name: "☔", id: "shield" }
-);
 /* enemySentinel.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "🔫", id: "heavy-bullets" },
   { name: "☔", id: "shield" }
 ); */
 
-steel.attacks.push(
-  { name: "⚡", id: "laser-rays" },
-  { name: "⚡", id: "laser-rays" },
-  { name: "⚡", id: "laser-rays" }
-);
 /* enemySteel.attacks.push(
   { name: "⚡", id: "laser-rays" },
   { name: "⚡", id: "laser-rays" },
@@ -329,8 +325,38 @@ function attackSequence() {
         bt.style.background = "#112f58";
         bt.disabled = true;
       }
-      randomEnemyAttack();
+      //randomEnemyAttack();
+      if (playerAttack.length === 3) {
+        sendAttack();
+      }
     });
+  });
+}
+
+function sendAttack() {
+  fetch(`http://localhost:8080/robot/${playerId}/attacks`, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      attacks: playerAttack,
+    }),
+  });
+
+  intervalo = setInterval(obtainAttacks, 50);
+}
+
+function obtainAttacks() {
+  fetch(`http://localhost:8080/robot/${enemyId}/attacks`).then(function (res) {
+    if (res.ok) {
+      res.json().then(function ({ attacks }) {
+        if (attacks.length === 3) {
+          enemyAttack = attacks;
+          theWinnerIs();
+        }
+      });
+    }
   });
 }
 
@@ -368,6 +394,8 @@ function mixingAttacks(player, enemy) {
 }
 
 function theWinnerIs() {
+  clearInterval(intervalo);
+
   for (let index = 0; index < playerAttack.length; index++) {
     if (playerAttack[index] === enemyAttack[index]) {
       mixingAttacks(index, index);
@@ -452,23 +480,15 @@ function drawCanvas() {
   playerRobotObject.y = playerRobotObject.y + playerRobotObject.speedY;
   lienzo.clearRect(0, 0, mapa.width, mapa.height);
   lienzo.drawImage(backgroundMap, 0, 0, mapa.width, mapa.height);
+
   playerRobotObject.drawRobot();
 
   sendPosition(playerRobotObject.x, playerRobotObject.y);
 
-  enemyDrone.drawRobot();
-  enemySlug.drawRobot();
-  enemyObserver.drawRobot();
-  enemySentinel.drawRobot();
-  enemySteel.drawRobot();
-
-  if (playerRobotObject !== 0 || playerRobotObject.speedY !== 0) {
-    checkImpack(enemyDrone);
-    checkImpack(enemySlug);
-    checkImpack(enemyObserver);
-    checkImpack(enemySentinel);
-    checkImpack(enemySteel);
-  }
+  enemyRobots.forEach(function (robot) {
+    robot.drawRobot();
+    checkImpack(robot);
+  });
 }
 
 function sendPosition(x, y) {
@@ -484,7 +504,57 @@ function sendPosition(x, y) {
   }).then(function (res) {
     if (res.ok) {
       res.json().then(function ({ enemies }) {
-        console.log(enemies);
+        //console.log(enemies);
+        enemyRobots = enemies.map(function (enemy) {
+          let enemyRobot = null;
+          const robotName = enemy.robot.name || "";
+          if (robotName === "Drone") {
+            enemyRobot = new Robot(
+              "Drone",
+              "assets/Drone.png",
+              3,
+              "assets/Drone.png",
+              enemy.id
+            );
+          } else if (robotName === "Slug") {
+            enemyRobot = new Robot(
+              "Slug",
+              "assets/Metal-Slug.png",
+              3,
+              "assets/Metal-Slug.png",
+              enemy.id
+            );
+          } else if (robotName === "Observer") {
+            enemyRobot = new Robot(
+              "Observer",
+              "assets/observer.png",
+              3,
+              "assets/observer.png",
+              enemy.id
+            );
+          } else if (robotName === "Sentinel") {
+            enemyRobot = new Robot(
+              "Sentinel",
+              "assets/Sentinel.png",
+              3,
+              "assets/Sentinel.png",
+              enemy.id
+            );
+          } else if (robotName === "Steel") {
+            enemyRobot = new Robot(
+              "Steel",
+              "assets/steel-eagle.png",
+              3,
+              "assets/steel-eagle.png",
+              enemy.id
+            );
+          }
+
+          enemyRobot.x = enemy.x;
+          enemyRobot.y = enemy.y;
+
+          return enemyRobot;
+        });
       });
     }
   });
@@ -559,6 +629,9 @@ const checkImpack = (enemy) => {
   }
   stopMove();
   clearInterval(intervalo);
+
+  enemyId = enemy.id;
+
   battle.style.display = "flex";
   sectionMap.style.display = "none";
   pickEnemyPet(enemy);

@@ -19,6 +19,9 @@ class Player {
   updatePosition(x, y) {
     (this.x = x), (this.y = y);
   }
+  assignAttacks(attacks) {
+    this.attacks = attacks;
+  }
 }
 
 class Robot {
@@ -66,9 +69,30 @@ app.post("/robot/:playerId/position", (req, res) => {
     players[playerIndex].updatePosition(x, y);
   }
 
-  const enemies = players.filter((player) => playerId != player.id);
+  const enemies = players.filter((player) => playerId !== player.id);
 
   res.send({ enemies });
+});
+
+app.post("/robot/:playerId/attacks", (req, res) => {
+  const playerId = req.params.playerId || "";
+  const attacks = req.body.attacks || [];
+
+  const playerIndex = players.findIndex((player) => playerId === player.id);
+
+  if (playerIndex >= 0) {
+    players[playerIndex].assignAttacks(attacks);
+  }
+
+  res.end();
+});
+
+app.get("/robot/:playerId/attacks", (req, res) => {
+  const playerId = req.params.playerId || "";
+  const player = players.find((player) => player.id === playerId);
+  res.send({
+    attacks: player.attacks || [],
+  });
 });
 
 app.listen(8080, () => {
